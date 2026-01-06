@@ -23,7 +23,7 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         public override int PageSize => 200;
 
         public override ProviderMessage Message => new ProviderMessage(
-            "Books from your Hardcover lists will be matched by title and author name against your configured metadata source.",
+            "Books from your Hardcover lists and/or user book statuses will be matched by title and author name against your configured metadata source.",
             ProviderMessageType.Info);
 
         public HardcoverImport(IHttpClient httpClient,
@@ -67,6 +67,18 @@ namespace NzbDrone.Core.ImportLists.Hardcover
                     {
                         Value = l.Id ?? l.Slug ?? l.Name,
                         Name = l.DisplayName
+                    });
+
+                return new { options };
+            }
+
+            if (action.Equals("getStatuses", StringComparison.OrdinalIgnoreCase))
+            {
+                var options = _hardcoverProxy.GetStatuses()
+                    .Select(s => new
+                    {
+                        Value = s.Id,
+                        Name = s.Name
                     });
 
                 return new { options };

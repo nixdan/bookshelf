@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NLog;
 using NzbDrone.Common.Http;
 
@@ -25,15 +26,39 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         private IEnumerable<ImportListRequest> GetPagedRequests()
         {
             var apiKey = NormalizeApiKey(Settings.ApiKey);
-            var listSlug = Settings.ListId;
+            var hasLists = Settings.ListIds != null && Settings.ListIds.Any();
+            var hasStatuses = Settings.BookStatusIds != null && Settings.BookStatusIds.Any();
 
-            Logger.Debug("Hardcover: Fetching list books for list '{0}'", listSlug);
+            // Generate request for lists if configured
+            if (hasLists)
+            {
+                Logger.Debug("Hardcover: Fetching list books from user lists");
 
-            // Query to fetch all lists with their books and author info
-            var graphQlBody = @"{
+                var listQuery = @"{
   ""query"": ""query ListBooks { me { lists { slug name list_books { book { id title contributions { author { id name } } } } } } }""
 }";
 
+                var listRequest = BuildGraphQlRequest(apiKey, listQuery);
+                yield return new ImportListRequest(listRequest);
+            }
+
+            // Generate request for user book statuses if configured
+            if (hasStatuses)
+            {
+                var statusIds = string.Join(",", Settings.BookStatusIds);
+                Logger.Debug("Hardcover: Fetching user books with status IDs: {0}", statusIds);
+
+                var statusQuery = $@"{{
+  ""query"": ""query UserBooks {{ me {{ user_books(where: {{user_book_status: {{id: {{_in: [{statusIds}]}}}}}}) {{ book {{ id title contributions {{ author {{ id name }} }} }} }} }} }}""
+}}";
+
+                var statusRequest = BuildGraphQlRequest(apiKey, statusQuery);
+                yield return new ImportListRequest(statusRequest);
+            }
+        }
+
+        private HttpRequest BuildGraphQlRequest(string apiKey, string graphQlBody)
+        {
             var request = new HttpRequestBuilder($"{Settings.BaseUrl.TrimEnd('/')}/v1/graphql")
                 .Post()
                 .Accept(HttpAccept.Json)
@@ -45,8 +70,7 @@ namespace NzbDrone.Core.ImportLists.Hardcover
                 .Build();
 
             request.SetContent(graphQlBody);
-
-            yield return new ImportListRequest(request);
+            return request;
         }
 
         private string NormalizeApiKey(string apiKey)

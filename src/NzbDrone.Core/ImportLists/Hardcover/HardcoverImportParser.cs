@@ -65,6 +65,7 @@ namespace NzbDrone.Core.ImportLists.Hardcover
                 var books = new List<JToken>();
                 foreach (var meItem in me.Children())
                 {
+                    // Handle lists response (data.me[].lists[].list_books[].book)
                     var lists = meItem["lists"];
                     if (lists != null && lists.Type == JTokenType.Array)
                     {
@@ -81,6 +82,20 @@ namespace NzbDrone.Core.ImportLists.Hardcover
                                         books.Add(book);
                                     }
                                 }
+                            }
+                        }
+                    }
+
+                    // Handle user_books response (data.me[].user_books[].book)
+                    var userBooks = meItem["user_books"];
+                    if (userBooks != null && userBooks.Type == JTokenType.Array)
+                    {
+                        foreach (var userBook in userBooks.Children())
+                        {
+                            var book = userBook["book"];
+                            if (book != null)
+                            {
+                                books.Add(book);
                             }
                         }
                     }

@@ -1,5 +1,3 @@
-import PropTypes from 'prop-types';
-import React from 'react';
 import AuthorMonitorNewItemsOptionsPopoverContent from 'AddAuthor/AuthorMonitorNewItemsOptionsPopoverContent';
 import Alert from 'Components/Alert';
 import DescriptionList from 'Components/DescriptionList/DescriptionList';
@@ -20,6 +18,8 @@ import ModalFooter from 'Components/Modal/ModalFooter';
 import ModalHeader from 'Components/Modal/ModalHeader';
 import Popover from 'Components/Tooltip/Popover';
 import { icons, inputTypes, kinds, tooltipPositions } from 'Helpers/Props';
+import PropTypes from 'prop-types';
+import React from 'react';
 import AdvancedSettingsButton from 'Settings/AdvancedSettingsButton';
 import formatShortTimeSpan from 'Utilities/Date/formatShortTimeSpan';
 import requestAction from 'Utilities/requestAction';
@@ -380,6 +380,7 @@ function EditImportListModalContent(props) {
                     {
                       fields.map((field) => {
                         const isListField = field.name === 'listIds';
+                        const isStatusField = field.name === 'bookStatusIds';
                       const safeField = {
                         ...field,
                         value: field.value ?? ''
