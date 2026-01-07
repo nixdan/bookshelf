@@ -13,7 +13,9 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         {
             RuleFor(c => c.BaseUrl).ValidRootUrl();
             RuleFor(c => c.ApiKey).NotEmpty();
-            RuleFor(c => c.ListIds).NotEmpty();
+            RuleFor(c => c)
+                .Must(c => (c.ListIds != null && c.ListIds.Any()) || (c.BookStatusIds != null && c.BookStatusIds.Any()))
+                .WithMessage("At least one List or Book Status must be selected");
         }
     }
 
@@ -25,6 +27,7 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         {
             BaseUrl = "https://api.hardcover.app";
             ListIds = Array.Empty<string>();
+            BookStatusIds = Array.Empty<int>();
         }
 
         [FieldDefinition(0, Label = "Base URL", HelpText = "Hardcover API base URL")]
@@ -33,8 +36,11 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         [FieldDefinition(1, Label = "API Key", Privacy = PrivacyLevel.ApiKey, HelpText = "Hardcover personal API key (from Settings > API)")]
         public string ApiKey { get; set; }
 
-        [FieldDefinition(2, Type = FieldType.Select, SelectOptionsProviderAction = "getLists", Label = "List", HelpText = "Choose a list from your Hardcover account to sync")]
+        [FieldDefinition(2, Type = FieldType.Select, SelectOptionsProviderAction = "getLists", Label = "Lists", HelpText = "Choose lists from your Hardcover account to sync (optional if Book Statuses selected)")]
         public IEnumerable<string> ListIds { get; set; }
+
+        [FieldDefinition(3, Type = FieldType.Select, SelectOptions = typeof(HardcoverBookStatus), Label = "Book Statuses", HelpText = "Select which book statuses to import (optional if Lists selected)")]
+        public IEnumerable<int> BookStatusIds { get; set; }
 
         public string ListId => ListIds?.FirstOrDefault();
 
@@ -42,5 +48,26 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         {
             return new NzbDroneValidationResult(Validator.Validate(this));
         }
+    }
+
+    public enum HardcoverBookStatus
+    {
+        [FieldOption(Label = "Want to Read")]
+        WantToRead = 1,
+
+        [FieldOption(Label = "Currently Reading")]
+        CurrentlyReading = 2,
+
+        [FieldOption(Label = "Read")]
+        Read = 3,
+
+        [FieldOption(Label = "Paused")]
+        Paused = 4,
+
+        [FieldOption(Label = "Did Not Finish")]
+        DidNotFinish = 5,
+
+        [FieldOption(Label = "Ignored")]
+        Ignored = 6
     }
 }

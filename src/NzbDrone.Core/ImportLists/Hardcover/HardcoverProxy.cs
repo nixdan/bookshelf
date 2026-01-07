@@ -12,6 +12,7 @@ namespace NzbDrone.Core.ImportLists.Hardcover
     public interface IHardcoverProxy
     {
         List<HardcoverListResource> GetLists(HardcoverImportSettings settings);
+        List<HardcoverStatusResource> GetStatuses();
         ValidationFailure Test(HardcoverImportSettings settings);
     }
 
@@ -55,6 +56,19 @@ namespace NzbDrone.Core.ImportLists.Hardcover
             _logger.Debug("Hardcover: Found {0} lists", lists.Count);
 
             return lists;
+        }
+
+        public List<HardcoverStatusResource> GetStatuses()
+        {
+            return new List<HardcoverStatusResource>
+            {
+                new HardcoverStatusResource { Id = 1, Name = "Want to Read" },
+                new HardcoverStatusResource { Id = 2, Name = "Currently Reading" },
+                new HardcoverStatusResource { Id = 3, Name = "Read" },
+                new HardcoverStatusResource { Id = 4, Name = "Paused" },
+                new HardcoverStatusResource { Id = 5, Name = "Did Not Finish" },
+                new HardcoverStatusResource { Id = 6, Name = "Ignored" }
+            };
         }
 
         public ValidationFailure Test(HardcoverImportSettings settings)
@@ -153,5 +167,11 @@ namespace NzbDrone.Core.ImportLists.Hardcover
         public string Name { get; set; }
 
         public string DisplayName => Name ?? Slug ?? Id;
+    }
+
+    public class HardcoverStatusResource
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
     }
 }
